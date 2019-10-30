@@ -16,6 +16,11 @@ import {
   WarningBox,
   H2,
 } from "../components";
+import dayjs from "dayjs";
+import DatePicker from "react-datepicker";
+import moment from 'moment';
+import "react-datepicker/dist/react-datepicker.css";
+import { SessionStore } from "../library/session-store";
 
 const StyledDatePicker = styled(DatePicker)`
   border: 2px solid ${colors.purple};
@@ -99,6 +104,7 @@ class Prescreen1a extends React.Component<Prescreen1aProps, Prescreen1aState> {
                     <StyledDatePicker
                     id="birthDatePicked"
                     placeholderText="Click to select a date"
+<<<<<<< HEAD
                     selected={birthDate}
                     showYearDropdown
                     openToDate={birthDate || dayjs().subtract(64, 'year').toDate()}
@@ -125,6 +131,32 @@ class Prescreen1a extends React.Component<Prescreen1aProps, Prescreen1aState> {
                   </Card>
                   }
             </div>
+=======
+                    selected={this.state.birthDate}
+                    onChange={this.handleDateChange}
+                    showYearDropdown
+                    openToDate={dayjs().subtract(65, 'years').toDate()}
+                    onChange={(value) => this.handleDateChange("birthDatePicked", value)}
+                    />
+                    <label style={{marginLeft: '10px'}}>{this.state.birthDate !== null ? this.state.birthDate.toLocaleDateString("en-US") : null}</label>
+                  </div>
+                  <div>
+                    <div>Retire Date</div>
+                    <DatePicker
+                    id="retireDatePicked"
+                    placeholderText="Click to select a date"
+                    selected={this.state.retireDate}
+                    showYearDropdown
+                    openToDate={dayjs().subtract(3, 'years').toDate()}
+                    onChange={(value) => this.handleDateChange("retireDatePicked", value)}
+                    />
+                    <label style={{marginLeft: '10px'}}>{this.state.retireDate !== null ? this.state.retireDate.toLocaleDateString("en-US") : null}</label>
+                  </div>
+                </Card>
+                <ButtonLinkRed to="/">Go back!</ButtonLinkRed>
+                <ButtonLink to="/prescreen-1b/" style={{disabled: 'disabled-link'}}>Start</ButtonLink>
+            </>
+>>>>>>> Fix datepicker–better defaults, extra year mode
          )
     }
 }
