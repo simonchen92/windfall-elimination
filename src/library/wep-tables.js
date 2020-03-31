@@ -12,6 +12,19 @@ var getWepTables = (function() {
 
 		return ColaTable
 	}
+	
+	var actuarialValueLumpSumTable = function(){
+		const actuarialValueLumpSumTable = checkJSONCache("actuarialValueLumpSumTable") || d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0KGd5_ZHdYIIFPdSzBHkG38FAkGQ04ADGHKkT-ODA64Qr79Ia8g-W1DMNFb4LEC2sh502ybgPeQDF/pub?gid=1500974875&single=true&output=csv',
+		                    ({age, Column20160601, Column20110531, Column20070601, Column20070531}) => 
+		                    ({age: +age,
+		                      column20160601: +Column20160601,
+		                      column20110531: +Column20110531,
+		                      column20070601: +Column20070601,
+		                      column20070531: +Column20070531
+		                     })
+		               )
+				return actuarialValueLumpSumTable
+	}
 
 	var benefitReductionTable = function(){
 		const benefitReductionTable = checkJSONCache("benefitReductionTable") || d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0KGd5_ZHdYIIFPdSzBHkG38FAkGQ04ADGHKkT-ODA64Qr79Ia8g-W1DMNFb4LEC2sh502ybgPeQDF/pub?gid=297756699&single=true&output=csv',
@@ -39,11 +52,13 @@ var getWepTables = (function() {
 
 	var bendPoints = function() {
 		const bendPoints = checkJSONCache("bendPoints") || d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0KGd5_ZHdYIIFPdSzBHkG38FAkGQ04ADGHKkT-ODA64Qr79Ia8g-W1DMNFb4LEC2sh502ybgPeQDF/pub?gid=1610617310&single=true&output=csv',
-                    ({Year, FirstDollarAmtPIA, SecondDollarAmtPIA, DollarAmtInMaxFamilyBenefitFormula}) => 
+                    ({Year, FirstDollarAmtPIA, SecondDollarAmtPIA, DollarAmtInMaxFamilyBenefitFormula, NA, IsActualValue}) => 
                     ({year: +Year,
                       FirstDollarAmtPIA: Number(FirstDollarAmtPIA.replace("$","")),
                       SecondDollarAmtPIA: Number(SecondDollarAmtPIA.replace("$","").replace(",", "")),
-                      DollarAmtInMaxFamilyBenefitFormula: Number(DollarAmtInMaxFamilyBenefitFormula.replace("$","").replace(",", ""))})
+					  DollarAmtInMaxFamilyBenefitFormula: Number(DollarAmtInMaxFamilyBenefitFormula.replace("$","").replace(",", "")),
+					  isActualValue: IsActualValue==="Yes" || IsActualValue==="yes"
+					})
                    ) //
 
 		return bendPoints
@@ -62,9 +77,10 @@ var getWepTables = (function() {
 	var averageWageIndexTable = function() {
 
 		const averageWageIndexTable = checkJSONCache("averageWageIndexTable") || d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0KGd5_ZHdYIIFPdSzBHkG38FAkGQ04ADGHKkT-ODA64Qr79Ia8g-W1DMNFb4LEC2sh502ybgPeQDF/pub?gid=1069245443&single=true&output=csv',
-                    ({Year, AverageWageIndex}) => 
+                    ({Year, AverageWageIndex,LowWage20192, HighWage20192, CalcPercent, TrusteeReportIntermediate20192, TrusteeReportHigh20192, TrusteeReportLow20192,IsActualValue}) => 
                     ({year: +Year,
-                      averageWageIndex: +AverageWageIndex
+					  averageWageIndex: +AverageWageIndex,
+					  isActualValue: IsActualValue === "Yes" || IsActualValue === "yes"
                      })
                )
 
@@ -73,13 +89,14 @@ var getWepTables = (function() {
 
 	var fullRetirementAgeTable = function() {
 
-		const fullRetirementAge = checkJSONCache("fullRetirementAge")
+		const fullRetirementAge = checkJSONCache("fullRetirementAgeTable")
 
 		return fullRetirementAge
 	}
 
 	return {
 		ColaTable: ColaTable,
+			actuarialValueLumpSumTable: actuarialValueLumpSumTable,
 	    benefitReductionTable: benefitReductionTable,
 	    substantialEarningsMarks: substantialEarningsMarks,
 	    bendPoints: bendPoints,

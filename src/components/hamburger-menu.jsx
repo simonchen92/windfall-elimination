@@ -84,7 +84,7 @@ export const Hamburger= styled('div')`
    	input:checked ~ ${HamburgerBuns} {opacity: 1; background:${colors.black};
   	transform: rotate(45deg) translate(-3px, -3px);}
 
-    input:checked ~ ${HamburgerBuns}:nth-of-type(2) {
+    input:checked ~ ${HamburgerBuns}::nth-of-type(2) {
     opacity: 0;
     transform: rotate(0deg) scale(0.2, 0.2);
     }
@@ -110,7 +110,7 @@ export default class HamburgerHelper extends React.Component {
   				<HamburgerBuns></HamburgerBuns>
   				<HamburgerBuns></HamburgerBuns>
 			  	<HamburgerMenu>
-			  			<li><Link to="/" style={{ textDecoration: `none`,}}>Home</Link></li>
+			  			<li><Link to="/" style={{ textDecoration: `none`,}}>HOME</Link></li>
 							<li><Link to="/admin/" style={{ textDecoration: `none`,}}>Admin Page</Link></li>
 							<li><a href="https://github.com/codeforboston/windfall-elimination" target="__blank" style={{ textDecoration: `none`,}}>Github</a></li>
 							<li><Link to="/about/" style={{ textDecoration: `none`,}}>About</Link></li>

@@ -1,20 +1,14 @@
 import React from "react";
+import { format } from 'd3-format';
 import {
   PrintButton,
-  ButtonLinkRed,
-  TextBlock,
-  SEO,
-  UnorderedList,
-  ListItem,
-  TextBlockHeader,
   Message,
-  HelperText,
-  Card,
-  ObservableCell
+  H3,
+  H2
 } from "../components";
-import { SessionStore } from "../library/session-store";
+import {useUserState, UserState, EarningsRecord} from '../library/user-state-context'
 import styled from "@emotion/styled";
-import { colors, fonts, fontSizes, radii, spacing } from "../constants";
+import { colors, fontSizes, radii, spacing } from "../constants";
 
 export const BoxDisplay = styled('div')`
   background-color: ${colors.whiteSmoke};
@@ -35,13 +29,24 @@ export const ResultsCard = styled('div')`
   border: 1px solid ${colors.darkGreen};
   border-radius: ${radii[0]};
   padding: ${spacing[1]};
-  margin: ${spacing[1]};
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  grid-auto-rows: 1fr;
+  margin: ${spacing[1]} 0;
+  display: block;
+  flex-direction: row;
+  padding: 10px 25px;
+  @media (max-width: 768px) {
+    padding: 10px 15px;
+    margin: 5px;
+  }
 `;
 
+const Row = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+const Title = styled.div`
+  display: flex;
+  justify-content: center;
+`;
 export const DisplayTable = styled("table")`
   table-layout: fixed;
   border-radius: ${radii[0]};
@@ -63,54 +68,19 @@ export const TableRow= styled("tr")`
   padding: 8px;
 `;
 
+const PageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 60vw;
+  @media (max-width: 768px) {
+    width: 70vw;
+  }
+`;
 
-var title = {
-  gridColumnStart: 1,
-  gridColumnEnd: 3,
-  gridRowStart: 1,
-  gridRowEnd: 2,
-  justifySelf: 'center'
-};
-
-var field1 = {
-  gridColumnStart: 1,
-  gridColumnEnd: 2,
-  gridRowStart: 2,
-  gridRowEnd: 3,
-  alignSelf: 'center',
-};
-
-var field2 = {
-  gridColumnStart: 1,
-  gridColumnEnd: 2,
-  gridRowStart: 3,
-  gridRowEnd: 4,
-  alignSelf: 'center',
-};
-
-var field3 = {
-  gridColumnStart: 1,
-  gridColumnEnd: 2,
-  gridRowStart: 4,
-  gridRowEnd: 5,
-  alignSelf: 'center',
-};
-
-var field4 = {
-  gridColumnStart: 1,
-  gridColumnEnd: 2,
-  gridRowStart: 5,
-  gridRowEnd: 6,
-  justifySelf: 'center',
-  alignSelf: 'center',
-};
-
-var earningsField = {
-  gridColumnStart: 1,
-  gridColumnEnd: 3,
-  gridRowStart: 2,
-  gridRowEnd: 6
-};
+const PrintArea = styled.div`
+display: block;
+`;
 
 var blankLines = {
   gridColumnStart: 2,
@@ -120,7 +90,11 @@ var blankLines = {
   marginBottom: '20px'
 };
 
-export class PrintEarnings extends React.Component {
+interface PrintEarningsProps {
+  earnings: EarningsRecord
+}
+
+class PrintEarnings extends React.Component<PrintEarningsProps> {
   constructor(props, context) {
     super(props, context)
     this.state = {
@@ -129,29 +103,28 @@ export class PrintEarnings extends React.Component {
   }
 
   componentDidMount() {
-    this.earningsRecord = JSON.parse(SessionStore.get('earnings'))
     if (this.state.tableRows === undefined) {
       this.makeRows()
     }
   }
 
   makeRows() {
-    const earnings = this.earningsRecord['osss:OnlineSocialSecurityStatementData']['osss:EarningsRecord']['osss:Earnings'];
+    const {earnings} = this.props
     var testEarnings = earnings;
     var earningsDict = {};
-    var tablesize = Math.ceil(earnings.length / 10);
+    var tablesize = Math.ceil(Object.keys(earnings).length / 10);
     var columnLength = 10;
-    var newRows = earnings.map((earning, i) => {
+    var newRows = Object.keys(earnings).map((year, i) => {
       return(
         <React.Fragment key={"earning" + i}>
-          <td key={"earningYear" + i}><label>{earning['@_startYear']}</label></td>
-          <td key={"earningAmount" + i}><label id={earning['@_startYear']} >{earning['osss:FicaEarnings']}</label></td>
+          <td key={"earningYear" + i}><label>{year}</label></td>
+          <td key={"earningAmount" + i}><label id={year} >{format(",.2r")(earnings[year])}</label></td>
         </React.Fragment>
       )
     })
 
     if (tablesize >= 5) {
-      tablesize = Math.ceil(earnings.length / 15)
+      tablesize = Math.ceil(Object.keys(earnings).length / 15)
       columnLength = 15;
 
     }
@@ -166,7 +139,7 @@ export class PrintEarnings extends React.Component {
 
     var sizedRows = []
 
-    while (newRows.length > 0)
+    while (newRows.length > 0) {
       if (newRows.length > columnLength) {
         sizedRows.push(newRows.splice(0, columnLength))
       } else {
@@ -176,8 +149,8 @@ export class PrintEarnings extends React.Component {
           smallArr.push(<React.Fragment key={"Filler" + i}></React.Fragment>)
         }
         sizedRows.push(smallArr)
-        
       }
+    }
 
     var finalRows = sizedRows[0].map(function(record, index) {
       var restofArray = sizedRows.slice(1, sizedRows.length)
@@ -211,101 +184,114 @@ export class PrintEarnings extends React.Component {
   }
 }
 
-export default class Print extends React.Component {
-  constructor(props, context) {
-    super(props, context)
-    this.printPage = this.printPage.bind(this);
+interface PrintProps {
+  userState: UserState
+}
 
-    this.state = {
-        userAIME: undefined,
-        userDOB: undefined,
-        userFRD: undefined,
-        userPension: undefined,
-        userStandardPIA: undefined,
-        userWEPPIA: undefined,
-        userMPB: undefined,
-        userYSE: undefined
-    }
-  }
+class Print extends React.Component<PrintProps> {
+  printPage = () => {
+    var printContents = document.getElementById("printArea").innerHTML;
+    var originalContents = document.body.innerHTML;
 
-  componentDidMount(){
+    // TODO Dangerous with React
+    document.body.innerHTML = printContents;
 
-    var parsedProfile = JSON.parse(SessionStore.get("UserProfile"))
+    window.print();
 
-    this.setState({
-      userAIME: parsedProfile["RawData"]["AIMEPicked"],
-      userDOB: parsedProfile["RawData"]["birthDatePicked"],
-      userFRD: parsedProfile["RawData"]["userFullRetireDate"],
-      userPension: parsedProfile["RawData"]["pensionNonCoveredMonthly"],
-      userStandardPIA: parsedProfile["Standard PIA"],
-      userWEPPIA: parsedProfile["WEP PIA"],
-      userMPB: parsedProfile["MPB"],
-      userYSE: parsedProfile["RawData"]["yearsSubstantialEarningsPicked"]
-    })
-  }
-
-  printPage() {
-     var printContents = document.getElementById("printArea").innerHTML;
-     var originalContents = document.body.innerHTML;
-
-     document.body.innerHTML = printContents;
-
-     window.print();
-
-     document.body.innerHTML = originalContents;
+    document.body.innerHTML = originalContents;
   }
 
   render() {
+    const {userState: {earnings, userProfile, birthDate, retireDate}} = this.props
 
+    if (!userProfile) return null
+
+    /* AIME does not have $format, has a comma */
+    const userAIME = format(",.2r")(userProfile.aime)
+    const userFRD = userProfile.fullRetireDate
+    const userYSE = userProfile.yearsSubstantialEarnings
+    /* Pension has $format, no cents */
+    const userPension = userProfile.pensionNonCoveredMonthly && format('$,.2r')(userProfile.pensionNonCoveredMonthly)
+    /* SPIA has $format, has cents */
+    const userStandardPIA = format('$,.2f')(userProfile["Standard PIA"])
+    /* MPB has $format, has cents */
+    const userMPB = format('$,.2f')(userProfile["MPB"])
     return(
-      <>
-         <div id="printArea">
-          <h1>Retirement benefit factors</h1>
+      <PageContainer>
+        <PrintArea id="printArea">
+          <H2>Retirement benefit factors</H2>
           <Message>
-            <div>Please review the information below for accuracy. If the information you provided does not match
+            Please review the information below for accuracy. If the information you provided does not match
             your letters from the Social Security Administration, you may want to consider contacting your local
             Social Security office. Bring this sheet and any supporting evidence (for example, W-2's, pension 
-            fund statements) with you.</div>
+            fund statements) with you.
+            <br/>
+            <br/>
 
-            <div>To find your local Social Security Office, please call the Social Security Administration at
-            1-800-772-1213 or go to https://secure.ssa.gov/ICON/main.jsp.</div>
+            To find your local Social Security Office, please call the Social Security Administration at
+            &nbsp;<a href="tel:1-800-772-1213">1-800-772-1213</a> or <a href="https://secure.ssa.gov/ICON/main.jsp" target="_new">use this tool to locate your office</a>.
           </Message>
-          <ResultsCard>
-            <h3 style={title}>Beneficiary Information</h3>
-            
-            <div style={field1}>Name:</div><div style={blankLines}>____________________________</div>
+          <ResultsCard >
+            <Title><H3>Beneficiary Information</H3></Title>
+            <Row>Name: <div style={blankLines}>____________________________</div></Row>
 
-            <div style={field2}>Social Security Number: </div><div style={blankLines}>______-______-_________</div>
+            <Row>Social Security Number: <div style={blankLines}>______-______-_________</div></Row>
 
-            <div style={field3}>Date of Birth: </div><BoxDisplay><strong>{this.state.userDOB}</strong></BoxDisplay>
+            {birthDate && (
+              <Row>Date of Birth: <BoxDisplay><strong>{birthDate.toLocaleDateString('en-US')}</strong></BoxDisplay></Row>
+            )}
 
           </ResultsCard>
           <ResultsCard>
-            <h3 style={title}>Retirement information</h3>
-            
-            <div style={field1}>Monthly non-covered pension amount:</div><BoxDisplay><strong>${this.state.userPension}</strong></BoxDisplay>
+          <Title><H3>Retirement information</H3></Title>
+            <Row>Monthly non-covered pension amount:<BoxDisplay><strong>{userPension}</strong></BoxDisplay></Row>
 
-            <div style={field2}>Date of Full Retirement Age:</div><BoxDisplay><strong>{this.state.userFRD}</strong></BoxDisplay>
+            {retireDate && (
+              <Row>Date of Full Retirement Age:<BoxDisplay><strong>{userFRD}</strong></BoxDisplay></Row>
+            )}
           </ResultsCard>
-          <Card>
-            <h3 style={{textAlign: 'center'}}>Earnings Record</h3>
-            <div><PrintEarnings /></div>
-          </Card>
+          {earnings && (
+            <ResultsCard>
+              <Title><H3 >Earnings Record</H3></Title>
+              <div><PrintEarnings earnings={earnings}/></div>
+            </ResultsCard>
+          )}
           <ResultsCard>
-              <h3 style={title}>Calculation results</h3>
+              <Title><H3>Calculation results</H3></Title>
 
-              <div style={field1}>Average Indexed Monthly Earnings:</div><BoxDisplay><strong>{this.state.userAIME}</strong></BoxDisplay>
-
-              <div style={field2}>Years of Substantial Earnings:</div><BoxDisplay><strong>{this.state.userYSE}</strong></BoxDisplay>
-
-              <div style={field3}>Primary Insurance Amount:</div><BoxDisplay><strong>${this.state.isWEP ? this.state.userWEPPIA : this.state.userStandardPIA}</strong></BoxDisplay>
-
-              <div style={field4}>Maximum Payable Benefit at Full Retirement Age:</div><BoxDisplay><strong>${this.state.userMPB}</strong></BoxDisplay>
+              <Row>
+                Average Indexed Monthly Earnings:
+                <BoxDisplay>
+                  <strong>{userAIME}</strong>
+                </BoxDisplay>
+              </Row>
+              <Row>
+                Years of Substantial Earnings:
+                <BoxDisplay>
+                  <strong>{userYSE}</strong>
+                  </BoxDisplay>
+                </Row>
+              <Row>
+                Primary Insurance Amount:
+                <BoxDisplay>
+                  <strong>{userStandardPIA}</strong>
+                </BoxDisplay>
+              </Row>
+              <Row>
+                Maximum Payable Benefit at Full Retirement Age:
+                <BoxDisplay>
+                  <strong>{userMPB}</strong>
+                </BoxDisplay>
+              </Row>
           </ResultsCard>
-        </div>
-        <ButtonLinkRed to="/screen-2/">Go back!</ButtonLinkRed>
-        <PrintButton onClick={this.printPage}>Print Results</PrintButton>
-      </>
+          </PrintArea>
+        <PrintButton onClick={this.printPage}>PRINT RESULTS</PrintButton>
+      </PageContainer>
     )
   }
+}
+
+export default function PrintWrapper(): JSX.Element {
+  const userState = useUserState()
+  return <Print userState={userState} />
 }
