@@ -23,7 +23,10 @@ import { TextBlockHeader } from "./text-block-header";
 import ObservableCell from "./observable-cell";
 import { ObservableRuntime } from "./observable-runtime";
 import HamburgerHelper from "./hamburger-menu";
-import { generateRuntime } from "./generate-runtime";
+import InfoWidget from "./info-widget";
+import FontLayout from "./font-layout";
+import FontPad from "./font-pad";
+import { PrintButton } from "./print-button";
 
 export {
     ButtonLink,
@@ -51,5 +54,8 @@ export {
     HamburgerHelper, 
     ObservableCell,
     ObservableRuntime,
-    generateRuntime
+    InfoWidget,
+    FontLayout,
+    FontPad,
+    PrintButton
 };
